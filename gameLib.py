@@ -18,6 +18,7 @@ class MessageType(Enum):
     INVALID_POSITION = 10
     PRINT_GAME = 11
 
+
 tamanho_tabuleiro = 5
 navios = 3
 
@@ -27,11 +28,21 @@ def printTabuleiro(tabuleiro: List[List[str]]) -> str:
     linhas = len(tabuleiro)
     colunas = len(tabuleiro[0])
 
+    # Adicionar o cabeçalho com os índices das colunas
+    resultado += "  "  # Espaço para alinhar os índices das colunas
+    for j in range(1, colunas + 1):
+        resultado += f"{j}   "  # 3 espaços após o número da coluna
+    resultado += "\n"
+
+    # Adicionar o conteúdo do tabuleiro com o índice das linhas
     for i in range(linhas):
+        resultado += f"{i + 1}  "  # Índice da linha
         for j in range(colunas):
-            resultado += tabuleiro[i][j]  # Não adiciona espaço aqui
-            if j < colunas - 1:  # Adiciona o espaço entre os elementos, mas não após o último
-                resultado += " "
+            resultado += tabuleiro[i][j]
+            if (
+                j < colunas - 1
+            ):  # Adiciona 3 espaços entre os elementos, mas não após o último
+                resultado += "   "
         if i < linhas - 1:  # Apenas adiciona uma nova linha se não for a última linha
             resultado += "\n"
 
@@ -40,10 +51,10 @@ def printTabuleiro(tabuleiro: List[List[str]]) -> str:
 
 def limpar_tela():
     # Detecta o sistema operacional e executa o comando apropriado
-    if os.name == 'nt':  # Se for Windows
-        os.system('cls')
+    if os.name == "nt":  # Se for Windows
+        os.system("cls")
     else:  # Se for Linux ou macOS
-        os.system('clear')
+        os.system("clear")
 
 
 # Mensagem de coordenada
@@ -63,7 +74,7 @@ def sendCoordinate(initialMessage: str):
             time.sleep(2)
             continue
 
-        return str((x, y)).encode()
+        return str((x - 1, y - 1)).encode()
 
 
 def receiveCoordinate(message: str):

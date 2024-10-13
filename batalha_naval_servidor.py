@@ -86,18 +86,19 @@ class ServidorBatalhaNaval:
                 continue
             else:
                 self.tabuleiros[jogador_index][x][y] = "N"
-                # self.jogadores[jogador_index].send(
-                #     f"{MessageType.PRINT_GAME.value}: {printTabuleiro(self.tabuleiros[jogador_index])}".encode()
-                # )
+                self.jogadores[jogador_index].send(
+                    f"{MessageType.PRINT_GAME.value}: {printTabuleiro(self.tabuleiros[jogador_index])}".encode()
+                )
                 i += 1
 
     def iniciar_jogo(self):
         # Iniciar rodadas alternadas
         turno = 0
         while True:
-            # self.jogadores[turno].send(
-            #     f"{MessageType.PRINT_GAME.value}: {printTabuleiro(self.tabuleiros[turno])}".encode()
-            # )
+            self.jogadores[turno].send(
+                f"{MessageType.PRINT_GAME.value}: {printTabuleiro(self.tabuleiros[turno])}".encode()
+            )
+            time.sleep(2)
             # Jogador atual faz o ataque
             self.jogadores[turno].send(
                 f"{MessageType.ATTACK.value}: Seu turno! Informe o alvo no formato 'linha,coluna'.".encode()
