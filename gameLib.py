@@ -6,17 +6,15 @@ import os
 
 # Definindo o enum MessageType
 class MessageType(Enum):
-    SHIP_QTD = 1
-    POSITION = 2
-    ATTACK = 3
-    ATTACK_RESULT = 4
-    GAME_RESULT = 5
-    ENEMY_SHIPS = 6
-    NAME = 7
-    DEFENSE = 8
-    DEFENSE_RESULT = 9
-    INVALID_POSITION = 10
-    PRINT_GAME = 11
+    POSITION = 1
+    ATTACK = 2
+    ATTACK_RESULT = 3
+    GAME_RESULT = 4
+    NAME = 5
+    DEFENSE = 6
+    DEFENSE_RESULT = 7
+    INVALID_POSITION = 8
+    PRINT_GAME = 9
 
 
 tamanho_tabuleiro = 5
@@ -24,7 +22,7 @@ navios = 3
 
 
 def printTabuleiro(tabuleiro: List[List[str]]) -> str:
-    resultado = ""
+    resultado = "\n "
     linhas = len(tabuleiro)
     colunas = len(tabuleiro[0])
 
@@ -45,7 +43,7 @@ def printTabuleiro(tabuleiro: List[List[str]]) -> str:
                 resultado += "   "
         if i < linhas - 1:  # Apenas adiciona uma nova linha se não for a última linha
             resultado += "\n"
-
+    resultado += "\n"
     return resultado
 
 

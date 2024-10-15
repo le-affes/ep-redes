@@ -1,6 +1,7 @@
 import socket
 import threading
 from gameLib import *
+import msvcrt
 
 
 class ClienteBatalhaNaval:
@@ -14,14 +15,13 @@ class ClienteBatalhaNaval:
         while True:
             try:
                 msg = self.cliente.recv(1024).decode()
+                time.sleep(0.5)
                 tipo, conteudo = msg.split(":", 1)
                 tipo = MessageType(int(tipo.strip()))
 
-                if tipo == MessageType.SHIP_QTD:
-                    print(f"Quantidade de navios: {conteudo}")
-
-                elif tipo == MessageType.POSITION:
+                if tipo == MessageType.POSITION:
                     self.cliente.send(sendCoordinate(conteudo))
+                    limpar_tela()
 
                 elif tipo == MessageType.ATTACK:
                     self.cliente.send(
@@ -30,16 +30,17 @@ class ClienteBatalhaNaval:
 
                 elif tipo == MessageType.ATTACK_RESULT:
                     print(f"Resultado do ataque: {conteudo}")
+                    time.sleep(2)
+                    limpar_tela()
 
                 elif tipo == MessageType.DEFENSE_RESULT:
                     print(f"Resultado da defesa: {conteudo}")
+                    time.sleep(2)
+                    limpar_tela()
 
                 elif tipo == MessageType.GAME_RESULT:
                     print(f"Resultado do jogo: {conteudo}")
                     break
-
-                elif tipo == MessageType.ENEMY_SHIPS:
-                    print(f"Navios restantes do inimigo: {conteudo}")
 
                 elif tipo == MessageType.NAME:
                     nome = input("Informe seu nome: ")
@@ -51,7 +52,7 @@ class ClienteBatalhaNaval:
                             "Em que posição deseja se defender? (linha,coluna): "
                         )
                     )
-                
+
                 elif tipo == MessageType.INVALID_POSITION:
                     print(conteudo)
 
