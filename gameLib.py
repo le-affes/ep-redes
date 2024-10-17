@@ -15,6 +15,7 @@ class MessageType(Enum):
     DEFENSE_RESULT = 7
     INVALID_POSITION = 8
     PRINT_GAME = 9
+    RESTART_GAME = 10
 
 
 tamanho_tabuleiro = 5
@@ -26,7 +27,6 @@ def printTabuleiro(tabuleiro: List[List[str]]) -> str:
     linhas = len(tabuleiro)
     colunas = len(tabuleiro[0])
 
-    # Adicionar o cabeçalho com os índices das colunas
     resultado += "  "  # Espaço para alinhar os índices das colunas
     for j in range(1, colunas + 1):
         resultado += f"{j}   "  # 3 espaços após o número da coluna
@@ -48,21 +48,21 @@ def printTabuleiro(tabuleiro: List[List[str]]) -> str:
 
 
 def limpar_tela():
-    # Detecta o sistema operacional e executa o comando apropriado
+    # Detecta o sistema operacional
     if os.name == "nt":  # Se for Windows
         os.system("cls")
     else:  # Se for Linux ou macOS
         os.system("clear")
 
 
-# Mensagem de coordenada
+# Mensagens de coordenada
 def sendCoordinate(initialMessage: str):
     while True:
         try:
             coordenadas = input(initialMessage)
             posicao = coordenadas.split(",")
             x, y = int(posicao[0]), int(posicao[1])
-            if x > tamanho_tabuleiro or y > tamanho_tabuleiro or y < 0 or x < 0:
+            if x > tamanho_tabuleiro or y > tamanho_tabuleiro or y <= 0 or x <= 0:
                 print("Entrada inválida!")
                 time.sleep(2)
                 continue
@@ -79,20 +79,3 @@ def receiveCoordinate(message: str):
     tupla_str = message.strip("()")
     x_str, y_str = tupla_str.split(", ")
     return (int(x_str), int(y_str))
-
-
-def sendAttackMessage():
-    while True:
-        coordenadas = input("Informe o alvo (linha,coluna): ")
-        try:
-            ataque_x, ataque_y = map(int, coordenadas.split(","))
-            if ataque_x > tamanho_tabuleiro or ataque_y > tamanho_tabuleiro:
-                print("Entrada inválida!")
-                time.sleep(2)
-
-        except:
-            print("Entrada inválida!")
-            time.sleep(2)
-            continue
-
-        return (ataque_x, ataque_y)

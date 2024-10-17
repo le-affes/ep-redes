@@ -24,16 +24,29 @@ def posicao_valida(x, y):
 # Classe para o servidor do jogo
 class ServidorBatalhaNaval:
     def __init__(self):
-        self.host = "172.115.7.5"
-        self.port = 55555
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.bind((self.host, self.port))
-        self.server.listen(2)
-        print("Aguardando jogadores...")
+        while True:
+            try:
+                entrada = input("Digite o endereço IP para se conectar. Para jogar em modo local apenas tecle 'Enter': ")
+                if entrada == "":
+                    self.host = socket.gethostname()
+                else:
+                    self.host = entrada
 
-        self.jogadores = []
-        self.tabuleiros = [inicializa_tabuleiro(), inicializa_tabuleiro()]
-        self.nomes = ["", ""]
+                self.port = 55555
+                self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.server.bind((self.host, self.port))
+                self.server.listen(2)
+                print("Aguardando jogadores...")
+
+                self.jogadores = []
+                self.tabuleiros = [inicializa_tabuleiro(), inicializa_tabuleiro()]
+                self.nomes = ["", ""]
+                break
+            
+            except:
+                print("Entrada Invalida.\nTente novamente.")
+                continue
+                
 
     def conectar_jogadores(self):
         while len(self.jogadores) < 2:
@@ -54,6 +67,7 @@ class ServidorBatalhaNaval:
         # Aguarda as threads finalizarem
         for thread in threads:
             thread.join()
+            
 
     def inicializar_jogador(self, jogador_index):
         # Solicitar nome

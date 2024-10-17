@@ -6,10 +6,23 @@ import msvcrt
 
 class ClienteBatalhaNaval:
     def __init__(self):
-        self.host = "172.115.7.5"
-        self.port = 55555
-        self.cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.cliente.connect((self.host, self.port))
+        while True:
+            try:
+                entrada = input("Digite o endereço IP para se conectar. Para jogar em modo local apenas tecle 'Enter': ")
+                if entrada == "":
+                    self.host = socket.gethostname()
+                else:
+                    self.host = entrada
+                    
+                self.port = 55555
+                self.cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.cliente.connect((self.host, self.port))
+                print("Conectado ao servidor.")
+                break
+            
+            except :
+                print(f"Erro ao conectar ao servidor. Tente novamente.")
+                continue
 
     def receber_mensagens(self):
         while True:
@@ -61,6 +74,7 @@ class ClienteBatalhaNaval:
 
             except:
                 print("Conexão com o servidor perdida.")
+                exit()
                 break
 
     def iniciar(self):
