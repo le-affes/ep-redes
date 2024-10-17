@@ -26,7 +26,9 @@ class ServidorBatalhaNaval:
     def __init__(self):
         while True:
             try:
-                entrada = input("Digite o endereço IP para se conectar. Para jogar em modo local apenas tecle 'Enter': ")
+                entrada = input(
+                    "Digite o endereço IP para se conectar. Para jogar em modo local apenas tecle 'Enter': "
+                )
                 if entrada == "":
                     self.host = socket.gethostname()
                 else:
@@ -42,18 +44,19 @@ class ServidorBatalhaNaval:
                 self.tabuleiros = [inicializa_tabuleiro(), inicializa_tabuleiro()]
                 self.nomes = ["", ""]
                 break
-            
+
             except:
                 print("Entrada Invalida.\nTente novamente.")
                 continue
-                
 
     def conectar_jogadores(self):
         while len(self.jogadores) < 2:
             cliente_socket, _ = self.server.accept()
+            cliente_socket.settimeout(300)
             self.jogadores.append(cliente_socket)
             print(f"Jogador {len(self.jogadores)} conectado.")
 
+        self.server.close()
         # Cria threads para cada jogador
         threads = [
             threading.Thread(target=self.inicializar_jogador, args=(0,)),
@@ -67,124 +70,135 @@ class ServidorBatalhaNaval:
         # Aguarda as threads finalizarem
         for thread in threads:
             thread.join()
-            
 
     def inicializar_jogador(self, jogador_index):
-        # Solicitar nome
-        self.jogadores[jogador_index].send(
-            f"{MessageType.NAME.value}: Informe seu nome.".encode()
-        )
-        self.nomes[jogador_index] = self.jogadores[jogador_index].recv(1024).decode()
-        print(f"Nome do Jogador {jogador_index + 1}: {self.nomes[jogador_index]}")
-
-        # Posicionar navios
-
-        i = 0
-        while i < navios:
+        try:
+            # Solicitar nome
             self.jogadores[jogador_index].send(
-                f"{MessageType.PRINT_GAME.value}: Tabuleiro de {self.nomes[jogador_index]}{printTabuleiro(self.tabuleiros[jogador_index])}".encode()
+                f"{MessageType.NAME.value}: Informe seu nome.".encode()
             )
-            time.sleep(0.7)
-
-            self.jogadores[jogador_index].send(
-                f"{MessageType.POSITION.value}: Posicione seus navios no formato 'linha,coluna'): ".encode()
+            self.nomes[jogador_index] = (
+                self.jogadores[jogador_index].recv(1024).decode()
             )
+            print(f"Nome do Jogador {jogador_index + 1}: {self.nomes[jogador_index]}")
 
-            msg = self.jogadores[jogador_index].recv(1024).decode()
-            x, y = receiveCoordinate(msg)
+            # Posicionar navios
 
-            if self.tabuleiros[jogador_index][x][y] == "N":
+            i = 0
+            while i < navios:
                 self.jogadores[jogador_index].send(
-                    f"{MessageType.INVALID_POSITION.value}: Navio já existente! Selecione outra posição.".encode()
+                    f"{MessageType.PRINT_GAME.value}: Tabuleiro de {self.nomes[jogador_index]}{printTabuleiro(self.tabuleiros[jogador_index])}".encode()
                 )
                 time.sleep(0.7)
-                continue
-            else:
-                self.tabuleiros[jogador_index][x][y] = "N"
-                i += 1
+
+                self.jogadores[jogador_index].send(
+                    f"{MessageType.POSITION.value}: Posicione seus navios no formato 'linha,coluna'): ".encode()
+                )
+
+                msg = self.jogadores[jogador_index].recv(1024).decode()
+                x, y = receiveCoordinate(msg)
+
+                if self.tabuleiros[jogador_index][x][y] == "N":
+                    self.jogadores[jogador_index].send(
+                        f"{MessageType.INVALID_POSITION.value}: Navio já existente! Selecione outra posição.".encode()
+                    )
+                    time.sleep(0.7)
+                    continue
+                else:
+                    self.tabuleiros[jogador_index][x][y] = "N"
+                    i += 1
+
+        except TimeoutError as e:
+            print(f"Time Out. O programa será encerrado.")
+        except Exception as e:
+            print("Conexão perdida. Infelizmente, teremos que encerrar a partida")
 
     def iniciar_jogo(self):
-        # Iniciar rodadas alternadas
-        turno = 0
-        while True:
-            time.sleep(1.5)
-            oponente = 1 - turno
+        try:
+            # Iniciar rodadas alternadas
+            turno = 0
+            while True:
+                time.sleep(1.5)
+                oponente = 1 - turno
 
-            self.jogadores[turno].send(
-                f"{MessageType.PRINT_GAME.value}: Tabuleiro de {self.nomes[turno]}{printTabuleiro(self.tabuleiros[turno])}".encode()
-            )
-
-            self.jogadores[oponente].send(
-                f"{MessageType.PRINT_GAME.value}: Tabuleiro de {self.nomes[oponente]}{printTabuleiro(self.tabuleiros[oponente])}".encode()
-            )
-            time.sleep(1.5)
-
-            # Jogador atual faz o ataque
-            self.jogadores[turno].send(
-                f"{MessageType.ATTACK.value}: Seu turno! Informe o alvo no formato 'linha,coluna'.".encode()
-            )
-            msg = self.jogadores[turno].recv(1024).decode()
-            ataque_x, ataque_y = receiveCoordinate(msg)
-
-            # Jogador oponente escolhe uma posição para se defender
-            if sum(row.count("N") for row in self.tabuleiros[oponente]) > 1:
-                self.jogadores[oponente].send(
-                    f"{MessageType.DEFENSE.value}: Em que posição deseja se defender? (linha,coluna)".encode()
+                self.jogadores[turno].send(
+                    f"{MessageType.PRINT_GAME.value}: Tabuleiro de {self.nomes[turno]}{printTabuleiro(self.tabuleiros[turno])}".encode()
                 )
-                msg = self.jogadores[oponente].recv(1024).decode()
-                defesa_x, defesa_y = receiveCoordinate(msg)
 
-                # Verificar se a defesa coincide com o ataque
-                if ataque_x == defesa_x and ataque_y == defesa_y:
-                    # Ataque anulado
+                self.jogadores[oponente].send(
+                    f"{MessageType.PRINT_GAME.value}: Tabuleiro de {self.nomes[oponente]}{printTabuleiro(self.tabuleiros[oponente])}".encode()
+                )
+                time.sleep(1.5)
+
+                # Jogador atual faz o ataque
+                self.jogadores[turno].send(
+                    f"{MessageType.ATTACK.value}: Seu turno! Informe o alvo no formato 'linha,coluna'.".encode()
+                )
+                msg = self.jogadores[turno].recv(1024).decode()
+                ataque_x, ataque_y = receiveCoordinate(msg)
+
+                # Jogador oponente escolhe uma posição para se defender
+                if sum(row.count("N") for row in self.tabuleiros[oponente]) > 1:
+                    self.jogadores[oponente].send(
+                        f"{MessageType.DEFENSE.value}: Em que posição deseja se defender? (linha,coluna)".encode()
+                    )
+                    msg = self.jogadores[oponente].recv(1024).decode()
+                    defesa_x, defesa_y = receiveCoordinate(msg)
+
+                    # Verificar se a defesa coincide com o ataque
+                    if ataque_x == defesa_x and ataque_y == defesa_y:
+                        # Ataque anulado
+                        self.jogadores[turno].send(
+                            f"{MessageType.ATTACK_RESULT.value}: Seu ataque foi defendido.".encode()
+                        )
+                        self.jogadores[oponente].send(
+                            f"{MessageType.DEFENSE_RESULT.value}: Você defendeu o ataque de {self.nomes[turno]}!".encode()
+                        )
+                        # O turno muda para o defensor, que agora ataca
+                        turno = oponente
+                        continue  # Passa para o próximo ataque
+
+                # Ataque é válido
+                if verifica_tiro(self.tabuleiros[oponente], ataque_x, ataque_y):
+                    self.tabuleiros[oponente][ataque_x][ataque_y] = "X"
+                    navios_restantes = sum(
+                        row.count("N") for row in self.tabuleiros[oponente]
+                    )
                     self.jogadores[turno].send(
-                        f"{MessageType.ATTACK_RESULT.value}: Seu ataque foi defendido.".encode()
+                        f"{MessageType.ATTACK_RESULT.value}: Você acertou! \n{self.nomes[oponente]} ainda tem {navios_restantes} navios.".encode()
                     )
                     self.jogadores[oponente].send(
-                        f"{MessageType.DEFENSE_RESULT.value}: Você defendeu o ataque de {self.nomes[turno]}!".encode()
+                        f"{MessageType.ATTACK_RESULT.value}: {self.nomes[turno]} atingiu seu navio!".encode()
                     )
-                    # O turno muda para o defensor, que agora ataca
-                    turno = oponente
-                    continue  # Passa para o próximo ataque
 
-            # Ataque é válido
-            if verifica_tiro(self.tabuleiros[oponente], ataque_x, ataque_y):
-                self.tabuleiros[oponente][ataque_x][ataque_y] = "X"
-                navios_restantes = sum(
-                    row.count("N") for row in self.tabuleiros[oponente]
-                )
-                self.jogadores[turno].send(
-                    f"{MessageType.ATTACK_RESULT.value}: Você acertou! \n{self.nomes[oponente]} ainda tem {navios_restantes} navios.".encode()
-                )
-                self.jogadores[oponente].send(
-                    f"{MessageType.ATTACK_RESULT.value}: {self.nomes[turno]} atingiu seu navio!".encode()
-                )
-
-                # Checar se o oponente perdeu
-                if all(
-                    cell != "N" for row in self.tabuleiros[oponente] for cell in row
-                ):
+                    # Checar se o oponente perdeu
+                    if all(
+                        cell != "N" for row in self.tabuleiros[oponente] for cell in row
+                    ):
+                        self.jogadores[turno].send(
+                            f"{MessageType.GAME_RESULT.value}: Parabéns {self.nomes[turno]}, você venceu!".encode()
+                        )
+                        self.jogadores[oponente].send(
+                            f"{MessageType.GAME_RESULT.value}: Você perdeu {self.nomes[oponente]}.".encode()
+                        )
+                        break
+                else:
+                    # Ataque falhou
+                    navios_restantes = sum(
+                        row.count("N") for row in self.tabuleiros[oponente]
+                    )
                     self.jogadores[turno].send(
-                        f"{MessageType.GAME_RESULT.value}: Parabéns {self.nomes[turno]}, você venceu!".encode()
+                        f"{MessageType.ATTACK_RESULT.value}: Você errou!\n{self.nomes[oponente]} ainda tem {navios_restantes} navios. ".encode()
                     )
                     self.jogadores[oponente].send(
-                        f"{MessageType.GAME_RESULT.value}: Você perdeu {self.nomes[oponente]}.".encode()
+                        f"{MessageType.ATTACK_RESULT.value}: {self.nomes[turno]} errou!".encode()
                     )
-                    break
-            else:
-                # Ataque falhou
-                navios_restantes = sum(
-                    row.count("N") for row in self.tabuleiros[oponente]
-                )
-                self.jogadores[turno].send(
-                    f"{MessageType.ATTACK_RESULT.value}: Você errou!\n{self.nomes[oponente]} ainda tem {navios_restantes} navios. ".encode()
-                )
-                self.jogadores[oponente].send(
-                    f"{MessageType.ATTACK_RESULT.value}: {self.nomes[turno]} errou!".encode()
-                )
 
-            # Alterna turno
-            turno = oponente
+                # Alterna turno
+                turno = oponente
+
+        except TimeoutError as e:
+            print(f"Time Out. O programa será encerrado.")
 
     def iniciar(self):
         # Conecta jogadores e inicia suas threads de inicialização

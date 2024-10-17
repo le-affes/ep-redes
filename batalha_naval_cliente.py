@@ -1,7 +1,6 @@
 import socket
 import threading
 from gameLib import *
-import msvcrt
 
 
 class ClienteBatalhaNaval:
@@ -10,18 +9,35 @@ class ClienteBatalhaNaval:
             try:
                 entrada = input("Digite o endereço IP para se conectar. Para jogar em modo local apenas tecle 'Enter': ")
                 if entrada == "":
-                    self.host = socket.gethostname()
+                    self.host = socket.gethostname()  # Conexão local
                 else:
-                    self.host = entrada
-                    
+                    self.host = entrada  # Conexão remota com IP especificado
+
                 self.port = 55555
                 self.cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+                # Tentativa de conexão sem timeout
                 self.cliente.connect((self.host, self.port))
+                self.cliente.settimeout(5)
+
                 print("Conectado ao servidor.")
+
+                # Define um timeout para as operações após a conexão ser estabelecida
+                self.cliente.settimeout(None)
+
                 break
             
-            except :
-                print(f"Erro ao conectar ao servidor. Tente novamente.")
+            except ConnectionRefusedError:
+                print("Conexão recusada pelo servidor. O jogo pode já estar cheio ou em andamento.")
+                self.cliente.close()
+                continue
+            except OSError as e:
+                print(f"Erro de rede: {e}. Verifique o IP e a conexão.")
+                self.cliente.close()
+                continue
+            except Exception as e:
+                print(f"Erro ao conectar ao servidor: {e}. Tente novamente.")
+                self.cliente.close()
                 continue
 
     def receber_mensagens(self):
