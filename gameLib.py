@@ -62,7 +62,7 @@ def sendCoordinate(initialMessage: str):
             coordenadas = input(initialMessage)
             posicao = coordenadas.split(",")
             x, y = int(posicao[0]), int(posicao[1])
-            if x > tamanho_tabuleiro or y > tamanho_tabuleiro:
+            if x > tamanho_tabuleiro or y > tamanho_tabuleiro or y < 0 or x < 0:
                 print("Entrada inválida!")
                 time.sleep(2)
                 continue

@@ -6,7 +6,7 @@ import msvcrt
 
 class ClienteBatalhaNaval:
     def __init__(self):
-        self.host = socket.gethostname()
+        self.host = "172.115.7.5"
         self.port = 55555
         self.cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.cliente.connect((self.host, self.port))

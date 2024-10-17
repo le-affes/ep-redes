@@ -24,7 +24,7 @@ def posicao_valida(x, y):
 # Classe para o servidor do jogo
 class ServidorBatalhaNaval:
     def __init__(self):
-        self.host = socket.gethostname()
+        self.host = "172.115.7.5"
         self.port = 55555
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((self.host, self.port))
@@ -83,6 +83,7 @@ class ServidorBatalhaNaval:
                 self.jogadores[jogador_index].send(
                     f"{MessageType.INVALID_POSITION.value}: Navio já existente! Selecione outra posição.".encode()
                 )
+                time.sleep(0.7)
                 continue
             else:
                 self.tabuleiros[jogador_index][x][y] = "N"
@@ -98,7 +99,7 @@ class ServidorBatalhaNaval:
             self.jogadores[turno].send(
                 f"{MessageType.PRINT_GAME.value}: Tabuleiro de {self.nomes[turno]}{printTabuleiro(self.tabuleiros[turno])}".encode()
             )
-            
+
             self.jogadores[oponente].send(
                 f"{MessageType.PRINT_GAME.value}: Tabuleiro de {self.nomes[oponente]}{printTabuleiro(self.tabuleiros[oponente])}".encode()
             )
@@ -165,10 +166,8 @@ class ServidorBatalhaNaval:
                     f"{MessageType.ATTACK_RESULT.value}: Você errou!\n{self.nomes[oponente]} ainda tem {navios_restantes} navios. ".encode()
                 )
                 self.jogadores[oponente].send(
-                    f"{MessageType.ATTACK_RESULT.value}: {self.nomes[oponente]} errou!".encode()
+                    f"{MessageType.ATTACK_RESULT.value}: {self.nomes[turno]} errou!".encode()
                 )
-                
-            
 
             # Alterna turno
             turno = oponente
